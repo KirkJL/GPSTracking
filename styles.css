@@ -160,6 +160,20 @@ body{overflow:auto}
   box-shadow:0 6px 24px rgba(2,6,23,0.6);
 }
 
+/* minimized view - bottom bar style */
+#ui.minimized {
+  top:auto !important;
+  bottom:10px;
+  left:10px;
+  right:10px;
+  width:auto;
+  max-width:none;
+}
+#ui.minimized #ui-main { display:none; }
+#ui.minimized .ui-header { background:rgba(0,0,0,0.6); border-radius:8px; padding:6px 10px; }
+#ui.minimized .ui-header .ui-title{font-size:14px}
+#ui.minimized .ui-header button{font-size:16px}
+
 #ui .row{margin-top:8px}
 
 #ui button{width:100%;margin-top:4px;padding:8px}

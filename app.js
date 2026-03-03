@@ -123,13 +123,18 @@ function initMap(){
       id: "route-line",
       type: "line",
       source: "route",
-      paint: { "line-width": 4, "line-opacity": 0.9 }
+      paint: { "line-width": 4, "line-opacity": 0.9, "line-color": "#4ade80" }
     });
   });
 }
 
 function updateRouteOnMap(){
-  if (!map?.getSource("route")) return;
+  if (!map) return;
+  if (!map.getSource("route")) {
+    // source may not exist yet; add and return
+    map.addSource("route", { type: "geojson", data: { type: "Feature", geometry:{ type:"LineString", coordinates:[] } } });
+    return;
+  }
   const coords = points.map(p => [p.lng, p.lat]);
   map.getSource("route").setData({
     type: "Feature",
@@ -253,7 +258,20 @@ function renderStops(){
     const div = document.createElement('div');
     div.className = 'stop-row';
     const meta = document.createElement('div'); meta.className = 'meta';
-    meta.textContent = `${i+1}. ${s.name || s.postcode || (s.lat+','+s.lng)}`;
+    const label = `${i+1}. ${s.name || s.postcode || (s.lat+','+s.lng)}`;
+    let extra = '';
+    if (i>0) {
+      const prev = stops[i-1];
+      const d = haversineMeters(prev, s) * 0.000621371; // miles
+      let minSec = '';
+      if (prev.t && s.t) {
+        const diff = (s.t - prev.t) / 1000; // sec
+        const mins = Math.round(diff/60);
+        minSec = ` / ${mins}min`;
+      }
+      extra = ` (${d.toFixed(2)} mi${minSec})`;
+    }
+    meta.textContent = label + extra;
     const btnUp = document.createElement('button'); btnUp.className='small'; btnUp.textContent='↑';
     const btnDown = document.createElement('button'); btnDown.className='small'; btnDown.textContent='↓';
     const btnRem = document.createElement('button'); btnRem.className='small'; btnRem.textContent='Remove';
@@ -281,6 +299,8 @@ function removeStop(index){
 
 // add a stop marker on the map and store it
 function addStopMarker(stop){
+  // annotate with time if tracking recent position available
+  stop.t = latestPoint?.t || Date.now();
   if (!map) {
     stops.push(stop);
     renderStops();
@@ -462,6 +482,12 @@ function onPosition(pos){
 btnStart.addEventListener("click", startSession);
 btnStop.addEventListener("click", stopSession);
 btnCenter.addEventListener("click", centerMap);
+btnUiToggle.addEventListener('click', toggleUI);
+
+function toggleUI(){
+  const ui = document.getElementById('ui');
+  ui.classList.toggle('minimized');
+}
 
 initMap();
 setStatus("Idle");
