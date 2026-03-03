@@ -201,7 +201,9 @@ body{overflow:auto}
 .secondary{background:var(--btn2);border:1px solid var(--line)}
 
 .stops-list{margin-top:8px}
-.stops-list .stop-row{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:6px;flex-wrap:wrap}
+.stops-list{max-height:180px;overflow-y:auto;}
++.stops-list .stop-row{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:6px;flex-wrap:wrap}
++.stops-list .stop-row.selected{background:rgba(74,222,128,0.2)}
 +.stops-list .stop-row .meta{flex:1 1 100%;font-size:13px;font-weight:600}
 +.stops-list .stop-row .detail{flex:1 1 100%;font-size:12px;color:var(--muted);margin-top:2px}
 .stops-list button.small{padding:6px 8px;font-size:12px}

@@ -57,6 +57,7 @@ let latestPoint = null;
 let points = [];
 let stops = [];
 let stopMarkers = [];
+let currentStopIndex = -1;
 
 let userMarker = null;
 
@@ -257,6 +258,7 @@ updateButtons();
 // helper: render stops list in UI
 function renderStops(){
   if (!stopsListEl) return;
+  // keep scroll visible
   if (!stops.length) { stopsListEl.textContent = 'No stops added.'; return; }
   stopsListEl.innerHTML = '';
   stops.forEach((s,i) => {
@@ -286,6 +288,8 @@ function renderStops(){
     btnDown.addEventListener('click', () => { if (i<stops.length-1){ [stops[i+1],stops[i]]=[stops[i],stops[i+1]]; rerenderStops(); } });
     btnRem.addEventListener('click', () => { removeStop(i); });
     div.appendChild(meta); div.appendChild(detail); div.appendChild(btnUp); div.appendChild(btnDown); div.appendChild(btnRem);
+    if (isSel) div.classList.add('selected');
+    div.addEventListener('click', () => { selectStop(i); });
     stopsListEl.appendChild(div);
   });
 }
@@ -298,6 +302,7 @@ function rerenderStops(){
 }
 
 function removeStop(index){
+  if(index===currentStopIndex) currentStopIndex=-1;
   if (index <0 || index >= stops.length) return;
   stops.splice(index,1);
   const m = stopMarkers[index]; if (m) { m.remove(); stopMarkers.splice(index,1); }
@@ -552,9 +557,29 @@ function exportGpx(){
 }
 
 function updateButtons(){
+  // navigation
+  const prev = document.getElementById('btnPrevStop');
+  const next = document.getElementById('btnNextStop');
+  if(prev) prev.disabled = currentStopIndex<=0;
+  if(next) next.disabled = currentStopIndex>=stops.length-1;
   btnExportJson.disabled = !(points.length||stops.length);
   btnExportGpx.disabled = !(points.length||stops.length);
 }
+
+function selectStop(i){
+  currentStopIndex = i;
+  renderStops();
+  if (map && stops[i]) map.flyTo({center:[stops[i].lng,stops[i].lat],zoom:15});
+  updateButtons();
+}
+
+// hook prev/next buttons
+document.getElementById('btnPrevStop')?.addEventListener('click', ()=>{
+  if(currentStopIndex>0) selectStop(currentStopIndex-1);
+});
+document.getElementById('btnNextStop')?.addEventListener('click', ()=>{
+  if(currentStopIndex<stops.length-1) selectStop(currentStopIndex+1);
+});
 
 function toggleUI(){
   const ui = document.getElementById('ui');
