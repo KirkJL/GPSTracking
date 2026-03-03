@@ -1,9 +1,10 @@
 const API_BASE = "https://gpstracking.kirkjlemon.workers.dev";
+const API_BASE = "https://YOUR-WORKER-URL.workers.dev";
 
 const TILE_URLS = [
-  "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+"https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+"https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+"https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
 ];
 
 const TILE_ATTR = "© OpenStreetMap contributors";
@@ -156,105 +157,67 @@ function haversineMeters(a, b){
   return 2 * R * Math.asin(Math.sqrt(s1 + s2));
 }
 
-async function openIdb(){
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open("waytrace", 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      db.createObjectStore("keys", { keyPath: "id" });
-      db.createObjectStore("state", { keyPath: "id" });
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+async function startSession(){
+  if (!geoSupported()) { alert("Geolocation not supported."); return; }
+
+  points = [];
+  stops = [];
+  latestPoint = null;
+  updateRouteOnMap();
+
+  btnStart.disabled = true;
+  btnStop.disabled = false;
+  btnStopHere.disabled = false;
+
+  await requestWakeLock();
+
+  watchId = navigator.geolocation.watchPosition(
+    onPosition,
+    (err) => setStatus(`GPS error: ${err.message}`),
+    { enableHighAccuracy: !!hiAcc.checked, maximumAge: 5000, timeout: 10000 }
+  );
+
+  setStatus("Tracking…");
 }
 
-async function idbGet(db, store, key){
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(store, "readonly");
-    const st = tx.objectStore(store);
-    const req = st.get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+async function stopSession(){
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  watchId = null;
 
-async function idbPut(db, store, value){
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(store, "readwrite");
-    const st = tx.objectStore(store);
-    const req = st.put(value);
-    req.onsuccess = () => resolve(true);
-    req.onerror = () => reject(req.error);
-  });
-}
+  await releaseWakeLock();
 
-function b64url(bytes){
-  let bin = "";
-  bytes.forEach(b => bin += String.fromCharCode(b));
-  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-}
-
-async function getOrCreateDeviceKeys(){
-  const idb = await openIdb();
-  const existing = await idbGet(idb, "keys", "device");
-  if (existing?.jwkPriv && existing?.jwkPub) {
-    const priv = await crypto.subtle.importKey("jwk", existing.jwkPriv, { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
-    const pub = await crypto.subtle.importKey("jwk", existing.jwkPub, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
-    return { privateKey: priv, publicKey: pub };
-  }
-
-  const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
-  const jwkPriv = await crypto.subtle.exportKey("jwk", kp.privateKey);
-  const jwkPub = await crypto.subtle.exportKey("jwk", kp.publicKey);
-  await idbPut(idb, "keys", { id: "device", jwkPriv, jwkPub });
-  return kp;
-}
-
-async function signChallenge(challengeStr){
-  const enc = new TextEncoder();
-  const data = enc.encode(challengeStr);
-  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, deviceKeyPair.privateKey, data);
-  return b64url(new Uint8Array(sig));
-}
-
-async function loginOrRegister(){
-  const email = (emailEl.value || "").trim().toLowerCase();
-  if (!email) { alert("Enter an email."); return; }
-
-  deviceKeyPair = await getOrCreateDeviceKeys();
-  const pubJwk = await crypto.subtle.exportKey("jwk", deviceKeyPair.publicKey);
-
-  setStatus("Auth: challenge…");
-  const ch = await api("/api/auth/challenge", { method: "POST", body: JSON.stringify({ email, pubJwk }) });
-
-  const signature = await signChallenge(ch.challenge);
-
-  setStatus("Auth: verify…");
-  const v = await api("/api/auth/verify", { method: "POST", body: JSON.stringify({ email, signature }) });
-
-  jwt = v.jwt;
-
-  btnLogout.disabled = false;
   btnStart.disabled = false;
-  btnCreateGroup.disabled = false;
-  btnJoinGroup.disabled = false;
+  btnStop.disabled = true;
+  btnStopHere.disabled = true;
 
-  setStatus("Authed");
-
-  const idb = await openIdb();
-  await idbPut(idb, "state", { id: "auth", email });
+  setStatus("Stopped");
 }
 
-/* remainder of file unchanged */
+function onPosition(pos){
+  const c = pos.coords;
+
+  const p = {
+    lat: c.latitude,
+    lng: c.longitude,
+    acc: c.accuracy,
+    spd: c.speed ?? null,
+    alt: c.altitude ?? null,
+    t: pos.timestamp
+  };
+
+  latestPoint = p;
+  points.push(p);
+
+  updateRouteOnMap();
+
+  trackInfoEl.textContent = `Points: ${points.length} | Acc: ${Math.round(p.acc)}m`;
+
+  if (points.length === 1) centerMap();
+}
+
+btnStart.addEventListener("click", startSession);
+btnStop.addEventListener("click", stopSession);
+btnCenter.addEventListener("click", centerMap);
 
 initMap();
 setStatus("Idle");
-
-(async () => {
-  try {
-    const idb = await openIdb();
-    const s = await idbGet(idb, "state", "auth");
-    if (s?.email) emailEl.value = s.email;
-  } catch {}
-})();
