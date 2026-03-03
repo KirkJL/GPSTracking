@@ -91,7 +91,8 @@ margin-top:4px;
 <button id="btnStopHere" disabled>Add Stop</button>
 <button id="btnCenter">Center Map</button>
 
-<button id="btnPay">Pay £5 for Journey</button>
+<button id="btnPay">Unlock tracking — £5</button>
+<button id="btnBypass" class="secondary" style="display:none">Continue (Test mode)</button>
 
 <label>
 <input type="checkbox" id="hiAcc">
@@ -118,7 +119,7 @@ Send Interval
 </div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="./app.js"></script>
+<script src="./app.js" defer></script>
 
 <!-- Paywall modal -->
 <div id="payModal" class="modal" aria-hidden="true">

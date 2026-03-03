@@ -27,6 +27,7 @@ const hiAcc = $("hiAcc");
 const sendIntervalEl = $("sendInterval");
 
 const btnPay = $("btnPay");
+const btnBypass = $("btnBypass");
 
 const payModal = $("payModal");
 const btnPayNow = $("btnPayNow");
@@ -182,6 +183,28 @@ function updatePayUI(){
   } else {
     btnPay.disabled = false;
   }
+}
+
+function isLocalhost(){
+  try{
+    const h = location.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '::1';
+  } catch(e){
+    return false;
+  }
+}
+
+// Show a bypass button for local testing so devs can test without paying
+if (btnBypass) {
+  if (isLocalhost()) {
+    btnBypass.style.display = 'block';
+  } else {
+    btnBypass.style.display = 'none';
+  }
+  btnBypass.addEventListener('click', () => {
+    markPaidForJourney();
+    startSession();
+  });
 }
 
 function showPayModal(){
