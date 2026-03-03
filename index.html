@@ -38,6 +38,11 @@ form-action 'self';
 </header>
 
 <section id="ui-main">
+  <!-- mini toolbar shown when mobile and minimized -->
+  <div id="miniTools" class="row" style="display:none;">
+    <button id="btnMiniStart" class="primary">Start</button>
+    <button id="btnMiniStop" class="secondary">Stop</button>
+  </div>
 	<div id="statusRow">
 		<div id="status">Idle</div>
 		<div id="trackInfo" class="muted small"></div>

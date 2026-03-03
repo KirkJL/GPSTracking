@@ -182,6 +182,9 @@ body{overflow:auto}
   #stopsArea input, #stopsArea button{font-size:14px;}
   /* collapse group code by default */
   #groupCode, #btnCreateGroup, #btnJoinGroup{display:none;}
+  /* mobile minimized state: show only start/stop*/
+  #ui.minimized #controls, #ui.minimized #exportArea, #ui.minimized #stopsArea, #ui.minimized hr, #ui.minimized .row.check, #ui.minimized #statusRow .muted {display:none !important;}
+  #ui.minimized #miniTools{display:flex !important; gap:4px; justify-content:center;}
 }
 
 #ui .row{margin-top:8px}

@@ -493,6 +493,12 @@ btnStop.addEventListener("click", stopSession);
 btnCenter.addEventListener("click", centerMap);
 btnUiToggle.addEventListener('click', toggleUI);
 
+// mini toolbar buttons
+const btnMiniStart = $("btnMiniStart");
+const btnMiniStop = $("btnMiniStop");
+btnMiniStart?.addEventListener('click', startSession);
+btnMiniStop?.addEventListener('click', stopSession);
+
 // exports
 btnExportJson.addEventListener('click', exportJson);
 btnExportGpx.addEventListener('click', exportGpx);
@@ -553,6 +559,8 @@ function updateButtons(){
 function toggleUI(){
   const ui = document.getElementById('ui');
   ui.classList.toggle('minimized');
+  const mini = document.getElementById('miniTools');
+  if (ui.classList.contains('minimized')) mini.style.display='flex'; else mini.style.display='none';
 }
 
 // auto collapse on narrow screens
