@@ -51,6 +51,8 @@ let latestPoint = null;
 let points = [];
 let stops = [];
 
+let userMarker = null;
+
 let jwt = null;
 let deviceKeyPair = null;
 
@@ -285,6 +287,21 @@ function onPosition(pos){
   points.push(p);
 
   updateRouteOnMap();
+
+  // Update or create user location marker
+  try {
+    if (map) {
+      if (!userMarker) {
+        userMarker = new maplibregl.Marker({ color: '#ff6b6b' })
+          .setLngLat([p.lng, p.lat])
+          .addTo(map);
+      } else {
+        userMarker.setLngLat([p.lng, p.lat]);
+      }
+    }
+  } catch (e) {
+    // ignore marker errors (map may not be ready)
+  }
 
   trackInfoEl.textContent = `Points: ${points.length} | Acc: ${Math.round(p.acc)}m`;
 
