@@ -489,5 +489,16 @@ function toggleUI(){
   ui.classList.toggle('minimized');
 }
 
+// auto collapse on narrow screens
+function checkAutoCollapse(){
+  const ui = document.getElementById('ui');
+  if (window.innerWidth < 600) {
+    ui.classList.add('minimized');
+  }
+}
+
+window.addEventListener('resize', checkAutoCollapse);
+checkAutoCollapse();
+
 initMap();
 setStatus("Idle");

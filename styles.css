@@ -174,6 +174,16 @@ body{overflow:auto}
 #ui.minimized .ui-header .ui-title{font-size:14px}
 #ui.minimized .ui-header button{font-size:16px}
 
+/* mobile adjustments */
+@media (max-width:600px){
+  #ui-main{padding:6px;}
+  #controls .row.two button{font-size:14px;padding:6px;}
+  #exportArea button{font-size:12px;padding:6px;}
+  #stopsArea input, #stopsArea button{font-size:14px;}
+  /* collapse group code by default */
+  #groupCode, #btnCreateGroup, #btnJoinGroup{display:none;}
+}
+
 #ui .row{margin-top:8px}
 
 #ui button{width:100%;margin-top:4px;padding:8px}
