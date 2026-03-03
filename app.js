@@ -36,6 +36,8 @@ const btnPayCancel = $("btnPayCancel");
 const btnExportJson = $("btnExportJson");
 const btnExportGpx = $("btnExportGpx");
 
+
+
 const groupCodeEl = $("groupCode");
 const btnCreateGroup = $("btnCreateGroup");
 const btnJoinGroup = $("btnJoinGroup");
@@ -248,6 +250,9 @@ btnPayNow?.addEventListener("click", () => simulatePayment());
 btnPayCancel?.addEventListener("click", () => { hidePayModal(); pendingStart = false; });
 
 updatePayUI();
+// initial states for extra controls
+btnJoinGroup.disabled = true;
+updateButtons();
 
 // helper: render stops list in UI
 function renderStops(){
@@ -271,14 +276,16 @@ function renderStops(){
       }
       extra = ` (${d.toFixed(2)} mi${minSec})`;
     }
-    meta.textContent = label + extra;
+    meta.textContent = label;
+    const detail = document.createElement('div'); detail.className='small muted';
+    detail.textContent = extra.replace(/^\s+/, '');
     const btnUp = document.createElement('button'); btnUp.className='small'; btnUp.textContent='↑';
     const btnDown = document.createElement('button'); btnDown.className='small'; btnDown.textContent='↓';
     const btnRem = document.createElement('button'); btnRem.className='small'; btnRem.textContent='Remove';
     btnUp.addEventListener('click', () => { if (i>0){ [stops[i-1],stops[i]]=[stops[i],stops[i-1]]; rerenderStops(); } });
     btnDown.addEventListener('click', () => { if (i<stops.length-1){ [stops[i+1],stops[i]]=[stops[i],stops[i+1]]; rerenderStops(); } });
     btnRem.addEventListener('click', () => { removeStop(i); });
-    div.appendChild(meta); div.appendChild(btnUp); div.appendChild(btnDown); div.appendChild(btnRem);
+    div.appendChild(meta); div.appendChild(detail); div.appendChild(btnUp); div.appendChild(btnDown); div.appendChild(btnRem);
     stopsListEl.appendChild(div);
   });
 }
@@ -315,6 +322,7 @@ function addStopMarker(stop){
   stopMarkers.push(m);
   stops.push(stop);
   renderStops();
+  updateButtons();
 }
 
 function boxShadow(el,val){try{el.style.boxShadow=val;}catch(e){}
@@ -434,6 +442,7 @@ function onPosition(pos){
   points.push(p);
 
   updateRouteOnMap();
+  updateButtons();
 
   // Update or create user location marker
   try {
@@ -483,6 +492,63 @@ btnStart.addEventListener("click", startSession);
 btnStop.addEventListener("click", stopSession);
 btnCenter.addEventListener("click", centerMap);
 btnUiToggle.addEventListener('click', toggleUI);
+
+// exports
+btnExportJson.addEventListener('click', exportJson);
+btnExportGpx.addEventListener('click', exportGpx);
+
+// group
+btnCreateGroup.addEventListener('click', () => {
+  const code = prompt('Enter new group code');
+  if (code) { groupId = code; groupInfoEl.textContent = `Group: ${groupId}`; }
+});
+btnJoinGroup.addEventListener('click', () => {
+  const code = groupCodeEl.value.trim();
+  if (code) { groupId = code; groupInfoEl.textContent = `Group: ${groupId}`; }
+});
+
+groupCodeEl?.addEventListener('input', () => {
+  if (groupCodeEl.value.trim()) btnJoinGroup.disabled = false;
+  else btnJoinGroup.disabled = true;
+});
+
+function exportJson(){
+  const data = { points, stops, groupId };
+  const blob = new Blob([JSON.stringify(data, null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download='journey.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportGpx(){
+  let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="WayTraceGPS">\n`;
+  if (points.length){
+    gpx += '<trk><name>Track</name><trkseg>';
+    points.forEach(p=>{
+      const t = new Date(p.t).toISOString();
+      gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"><time>${t}</time></trkpt>`;
+    });
+    gpx += '</trkseg></trk>';
+  }
+  if (stops.length){
+    stops.forEach(s=>{
+      const t = new Date(s.t).toISOString();
+      gpx += `<wpt lat="${s.lat}" lon="${s.lng}"><name>${s.name||s.postcode||''}</name><time>${t}</time></wpt>`;
+    });
+  }
+  gpx += '</gpx>';
+  const blob = new Blob([gpx], {type:'application/gpx+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download='journey.gpx';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function updateButtons(){
+  btnExportJson.disabled = !(points.length||stops.length);
+  btnExportGpx.disabled = !(points.length||stops.length);
+}
 
 function toggleUI(){
   const ui = document.getElementById('ui');
