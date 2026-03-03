@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>GPSTracking</title>
+<title>WayTrace GPS</title>
 
 <link rel="manifest" href="./manifest.webmanifest">
 
@@ -29,7 +28,7 @@ form-action 'self';
 
 body{
 margin:0;
-font-family:Arial;
+font-family:Arial, sans-serif;
 background:#111;
 color:white;
 }
@@ -43,17 +42,24 @@ width:100%;
 
 #ui{
 position:fixed;
-bottom:10px;
+top:10px;
 left:10px;
-background:#000c;
-padding:10px;
-border-radius:10px;
+background:rgba(0,0,0,0.7);
+padding:12px;
+border-radius:8px;
 z-index:10;
+font-size:14px;
+max-width:260px;
 }
 
-button{
-margin-top:5px;
+#ui button{
 width:100%;
+margin-top:4px;
+}
+
+#ui input{
+width:100%;
+margin-top:4px;
 }
 
 </style>
@@ -66,12 +72,46 @@ width:100%;
 
 <div id="ui">
 
-<div>Distance: <span id="distance">0</span> km</div>
-<div>Speed: <span id="speed">0</span> km/h</div>
+<div id="status">Idle</div>
+<div id="trackInfo"></div>
+<div id="journeyStats">No journey yet.</div>
+<div id="groupInfo"></div>
 
-<button onclick="startTracking()">Start</button>
-<button onclick="stopTracking()">Stop</button>
-<button onclick="exportJourney()">Export</button>
+<hr>
+
+<input id="email" placeholder="email">
+
+<button id="btnLogin">Login</button>
+<button id="btnLogout" disabled>Logout</button>
+
+<hr>
+
+<button id="btnStart" disabled>Start Tracking</button>
+<button id="btnStop" disabled>Stop Tracking</button>
+<button id="btnStopHere" disabled>Add Stop</button>
+<button id="btnCenter">Center Map</button>
+
+<label>
+<input type="checkbox" id="hiAcc">
+High Accuracy
+</label>
+
+<label>
+Send Interval
+<input id="sendInterval" type="number" value="8">
+</label>
+
+<hr>
+
+<button id="btnExportJson" disabled>Export JSON</button>
+<button id="btnExportGpx" disabled>Export GPX</button>
+
+<hr>
+
+<input id="groupCode" placeholder="Group code">
+
+<button id="btnCreateGroup" disabled>Create Group</button>
+<button id="btnJoinGroup" disabled>Join Group</button>
 
 </div>
 
