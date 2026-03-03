@@ -1,5 +1,4 @@
 const API_BASE = "https://gpstracking.kirkjlemon.workers.dev";
-const API_BASE = "https://YOUR-WORKER-URL.workers.dev";
 
 const TILE_URLS = [
 "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -146,6 +145,13 @@ document.addEventListener("visibilitychange", async () => {
 });
 
 function geoSupported(){ return "geolocation" in navigator; }
+
+// Enable start button if geolocation is available
+if (geoSupported()) {
+  btnStart.disabled = false;
+} else {
+  setStatus("Geolocation not supported.");
+}
 
 function haversineMeters(a, b){
   const R = 6371000;
