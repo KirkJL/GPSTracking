@@ -1,111 +1,82 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0f14" />
-  <title>Waytrace</title>
 
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./styles.css" />
-  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GPSTracking</title>
+
+<link rel="manifest" href="./manifest.webmanifest">
 
 <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
 script-src 'self' https://unpkg.com;
 style-src 'self' https://unpkg.com 'unsafe-inline';
 img-src 'self' data: https://*.tile.openstreetmap.org;
-connect-src 'self' https://gpstracking.kirkjlemon.workers.dev https://*.tile.openstreetmap.org https://unpkg.com;
+connect-src 'self' https://*.tile.openstreetmap.org;
 worker-src 'self' blob:;
 font-src 'self' https://unpkg.com;
-manifest-src 'self';
 object-src 'none';
 base-uri 'self';
 form-action 'self';
 ">
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#111;
+color:white;
+}
+
+#map{
+position:absolute;
+top:0;
+bottom:0;
+width:100%;
+}
+
+#ui{
+position:fixed;
+bottom:10px;
+left:10px;
+background:#000c;
+padding:10px;
+border-radius:10px;
+z-index:10;
+}
+
+button{
+margin-top:5px;
+width:100%;
+}
+
+</style>
+
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="brand">Waytrace</div>
-    <div class="status" id="status">Idle</div>
-  </header>
 
-  <main class="layout">
-    <section class="panel">
-      <h2>Account</h2>
-      <div class="row">
-        <label>Email</label>
-        <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
-      </div>
-      <div class="row">
-        <button id="btnLogin">Login / Register</button>
-        <button id="btnLogout" class="secondary" disabled>Logout</button>
-      </div>
-      <div class="small" id="authNote">
-        Device is registered to your account (web-realistic).
-      </div>
+<div id="map"></div>
 
-      <hr />
+<div id="ui">
 
-      <h2>Tracking</h2>
-      <div class="row two">
-        <button id="btnStart" disabled>Start session</button>
-        <button id="btnStop" class="secondary" disabled>Stop</button>
-      </div>
-      <div class="row two">
-        <button id="btnStopHere" class="secondary" disabled>Add stop</button>
-        <button id="btnCenter" class="secondary">Center</button>
-      </div>
+<div>Distance: <span id="distance">0</span> km</div>
+<div>Speed: <span id="speed">0</span> km/h</div>
 
-      <div class="row">
-        <label class="check">
-          <input id="hiAcc" type="checkbox" />
-          High accuracy (more battery)
-        </label>
-      </div>
+<button onclick="startTracking()">Start</button>
+<button onclick="stopTracking()">Stop</button>
+<button onclick="exportJourney()">Export</button>
 
-      <div class="row">
-        <label>Send interval</label>
-        <select id="sendInterval">
-          <option value="5">5s</option>
-          <option value="8" selected>8s</option>
-          <option value="12">12s</option>
-        </select>
-      </div>
+</div>
 
-      <div class="small" id="trackInfo">No points yet.</div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="./app.js"></script>
 
-      <hr />
-
-      <h2>Journey</h2>
-      <div class="small" id="journeyStats">No journey yet.</div>
-      <div class="row two">
-        <button id="btnExportJson" class="secondary" disabled>Export JSON</button>
-        <button id="btnExportGpx" class="secondary" disabled>Export GPX</button>
-      </div>
-
-      <hr />
-
-      <h2>Org / Groups</h2>
-      <div class="row">
-        <label>Group code</label>
-        <input id="groupCode" type="text" placeholder="e.g. AB12CD" />
-      </div>
-      <div class="row two">
-        <button id="btnCreateGroup" disabled>Create group</button>
-        <button id="btnJoinGroup" class="secondary" disabled>Join</button>
-      </div>
-      <div class="small" id="groupInfo">Not in a group.</div>
-    </section>
-
-    <section class="mapWrap">
-      <div id="map"></div>
-      <div class="attribution">© OpenStreetMap contributors</div>
-    </section>
-  </main>
-
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="./app.js"></script>
 </body>
 </html>
