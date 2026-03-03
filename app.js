@@ -248,7 +248,35 @@ updatePayUI();
 function renderStops(){
   if (!stopsListEl) return;
   if (!stops.length) { stopsListEl.textContent = 'No stops added.'; return; }
-  stopsListEl.innerHTML = stops.map((s,i) => `${i+1}. ${s.name || s.postcode || (s.lat+','+s.lng)}`).join('<br>');
+  stopsListEl.innerHTML = '';
+  stops.forEach((s,i) => {
+    const div = document.createElement('div');
+    div.className = 'stop-row';
+    const meta = document.createElement('div'); meta.className = 'meta';
+    meta.textContent = `${i+1}. ${s.name || s.postcode || (s.lat+','+s.lng)}`;
+    const btnUp = document.createElement('button'); btnUp.className='small'; btnUp.textContent='↑';
+    const btnDown = document.createElement('button'); btnDown.className='small'; btnDown.textContent='↓';
+    const btnRem = document.createElement('button'); btnRem.className='small'; btnRem.textContent='Remove';
+    btnUp.addEventListener('click', () => { if (i>0){ [stops[i-1],stops[i]]=[stops[i],stops[i-1]]; rerenderStops(); } });
+    btnDown.addEventListener('click', () => { if (i<stops.length-1){ [stops[i+1],stops[i]]=[stops[i],stops[i+1]]; rerenderStops(); } });
+    btnRem.addEventListener('click', () => { removeStop(i); });
+    div.appendChild(meta); div.appendChild(btnUp); div.appendChild(btnDown); div.appendChild(btnRem);
+    stopsListEl.appendChild(div);
+  });
+}
+
+function rerenderStops(){
+  // re-create markers to match order
+  stopMarkers.forEach(m=>m.remove()); stopMarkers = [];
+  const copy = stops.slice(); stops = [];
+  copy.forEach(s => addStopMarker(s));
+}
+
+function removeStop(index){
+  if (index <0 || index >= stops.length) return;
+  stops.splice(index,1);
+  const m = stopMarkers[index]; if (m) { m.remove(); stopMarkers.splice(index,1); }
+  renderStops();
 }
 
 // add a stop marker on the map and store it
@@ -258,12 +286,18 @@ function addStopMarker(stop){
     renderStops();
     return;
   }
-  const m = new maplibregl.Marker({ color: '#4ade80' })
+  const el = document.createElement('div');
+  el.className = 'stop-marker';
+  el.style.width='18px'; el.style.height='18px'; el.style.borderRadius='9px'; el.style.background='#4ade80'; el.style.border='2px solid white'; boxShadow(el,'0 2px 6px rgba(0,0,0,0.4)');
+  const m = new maplibregl.Marker(el)
     .setLngLat([stop.lng, stop.lat])
     .addTo(map);
   stopMarkers.push(m);
   stops.push(stop);
   renderStops();
+}
+
+function boxShadow(el,val){try{el.style.boxShadow=val;}catch(e){}
 }
 
 // geocode a UK postcode using Nominatim
@@ -372,12 +406,36 @@ function onPosition(pos){
   try {
     if (map) {
       if (!userMarker) {
-        userMarker = new maplibregl.Marker({ color: '#ff6b6b' })
-          .setLngLat([p.lng, p.lat])
-          .addTo(map);
+        // create a custom SVG marker with accuracy circle
+        const el = document.createElement('div'); el.className='user-marker';
+        const svg = `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="10" fill="#ff6b6b" stroke="#fff" stroke-width="2" />
+        </svg>`;
+        el.innerHTML = svg;
+        userMarker = new maplibregl.Marker(el).setLngLat([p.lng, p.lat]).addTo(map);
+        // accuracy element
+        const accEl = document.createElement('div'); accEl.className='user-acc'; accEl.style.position='absolute'; accEl.style.left='50%'; accEl.style.top='50%'; accEl.style.transform='translate(-50%,-50%)'; accEl.style.borderRadius='50%'; accEl.style.background='rgba(255,107,107,0.12)'; accEl.style.pointerEvents='none'; accEl.style.zIndex='-1';
+        el.appendChild(accEl);
       } else {
         userMarker.setLngLat([p.lng, p.lat]);
       }
+      // update accuracy circle sizing (approximate conversion meters->pixels)
+      try {
+        const el = userMarker.getElement();
+        const accEl = el.querySelector('.user-acc');
+        if (accEl) {
+          const meters = p.acc || 30;
+          const lat = p.lat;
+          const metersPerDeg = 111320;
+          const degOffset = meters / metersPerDeg;
+          const p2 = map.project([p.lng + degOffset, lat]);
+          const p1 = map.project([p.lng, lat]);
+          const px = Math.abs(p2.x - p1.x) || 20;
+          const size = Math.max(24, px*2);
+          accEl.style.width = size + 'px'; accEl.style.height = size + 'px';
+          accEl.style.marginLeft = (-size/2) + 'px'; accEl.style.marginTop = (-size/2) + 'px';
+        }
+      } catch(e){}
     }
   } catch (e) {
     // ignore marker errors (map may not be ready)

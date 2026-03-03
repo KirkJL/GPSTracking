@@ -143,33 +143,40 @@ body{overflow:auto}
   top:10px;
   left:10px;
   right:10px;
-  background:rgba(0,0,0,0.75);
-  padding:10px;
+  background:transparent;
+  padding:0;
   border-radius:10px;
   z-index:1000;
   width:calc(100% - 20px);
-  max-width:360px;
+  max-width:420px;
   font-size:14px;
-  backdrop-filter:blur(6px);
 }
 
-#ui button{
-width:100%;
-margin-top:6px;
-padding:6px;
+#ui-main{
+  background:linear-gradient(180deg, rgba(17,24,39,0.95), rgba(10,14,20,0.9));
+  border:1px solid rgba(255,255,255,0.04);
+  padding:12px;
+  border-radius:10px;
+  box-shadow:0 6px 24px rgba(2,6,23,0.6);
 }
 
-#ui input{
-width:100%;
-margin-top:6px;
-padding:5px;
-}
+#ui .row{margin-top:8px}
 
-#ui label{
-display:block;
-margin-top:6px;
-font-size:12px;
-}
+#ui button{width:100%;margin-top:4px;padding:8px}
+#ui input{width:100%;margin-top:4px;padding:8px;border-radius:8px}
+#ui label{display:block;margin-top:6px;font-size:12px}
+
+.ui-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:transparent}
+.ui-title{font-weight:800;color:var(--text);letter-spacing:0.02em}
+#btnUiToggle{background:transparent;border:0;color:var(--muted);font-size:20px}
+
+.primary{background:linear-gradient(90deg,var(--btn),#5b8bff);border:0}
+.secondary{background:var(--btn2);border:1px solid var(--line)}
+
+.stops-list{margin-top:8px}
+.stops-list .stop-row{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:6px}
+.stops-list .stop-row .meta{flex:1;font-size:13px}
+.stops-list button.small{padding:6px 8px;font-size:12px}
 
 @media (min-width:900px){
   /* Desktop layout: keep a narrow sidebar */

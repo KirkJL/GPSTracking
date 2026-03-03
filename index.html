@@ -33,51 +33,60 @@ form-action 'self';
 
 <div id="ui">
 
-<div id="status">Idle</div>
-<div id="trackInfo"></div>
-<div id="journeyStats">No journey yet.</div>
-<div id="groupInfo"></div>
+<header class="ui-header">
+	<div class="ui-title">WayTrace GPS</div>
+	<button id="btnUiToggle" class="secondary" aria-label="Toggle panel">⋯</button>
+</header>
 
-<hr>
+<section id="ui-main">
+	<div id="statusRow">
+		<div id="status">Idle</div>
+		<div id="trackInfo" class="muted small"></div>
+	</div>
 
-<input id="email" placeholder="email">
+	<div id="controls">
+		<div class="row two">
+			<button id="btnStart" disabled class="primary">Start</button>
+			<button id="btnStop" disabled class="secondary">Stop</button>
+		</div>
 
-<button id="btnLogin">Login</button>
-<button id="btnLogout" disabled>Logout</button>
+		<div class="row">
+			<button id="btnStopHere" disabled class="secondary">Add Stop</button>
+			<button id="btnCenter" class="secondary">Center</button>
+		</div>
 
-<hr>
+		<div class="row">
+			<button id="btnPay" class="primary">Unlock — £5</button>
+			<button id="btnBypass" class="secondary" style="display:none">Test</button>
+		</div>
 
-<button id="btnStart" disabled>Start Tracking</button>
-<button id="btnStop" disabled>Stop Tracking</button>
-<button id="btnStopHere" disabled>Add Stop</button>
-<button id="btnCenter">Center Map</button>
+		<div class="row check">
+			<input type="checkbox" id="hiAcc">
+			<label for="hiAcc">High accuracy</label>
+		</div>
 
-<button id="btnPay">Unlock tracking — £5</button>
-<button id="btnBypass" class="secondary" style="display:none">Continue (Test mode)</button>
+		<label class="small">Send interval (s)
+			<input id="sendInterval" type="number" value="8">
+		</label>
+	</div>
 
-<label>
-<input type="checkbox" id="hiAcc">
-High Accuracy
-</label>
+	<div id="exportArea" class="row two">
+		<button id="btnExportJson" disabled class="secondary">Export JSON</button>
+		<button id="btnExportGpx" disabled class="secondary">Export GPX</button>
+	</div>
 
-<label>
-Send Interval
-<input id="sendInterval" type="number" value="8">
-</label>
+	<hr>
 
-<hr>
+	<div id="stopsArea">
+		<label for="stopPostcode">Add stop (UK postcode)</label>
+		<div class="row">
+			<input id="stopPostcode" placeholder="e.g. SW1A 1AA">
+			<button id="btnAddStop" class="secondary">Add</button>
+		</div>
+		<div id="stopsList" class="stops-list small"></div>
+	</div>
 
-<button id="btnExportJson" disabled>Export JSON</button>
-<button id="btnExportGpx" disabled>Export GPX</button>
-
-<hr>
-
-<div id="stopsArea">
-	<label for="stopPostcode">Add stop (UK postcode)</label>
-	<input id="stopPostcode" placeholder="e.g. SW1A 1AA">
-	<button id="btnAddStop">Add Stop</button>
-	<div id="stopsList" class="small"></div>
-</div>
+</section>
 
 <hr>
 
