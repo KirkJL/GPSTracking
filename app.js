@@ -26,6 +26,12 @@ const btnCenter = $("btnCenter");
 const hiAcc = $("hiAcc");
 const sendIntervalEl = $("sendInterval");
 
+const btnPay = $("btnPay");
+
+const payModal = $("payModal");
+const btnPayNow = $("btnPayNow");
+const btnPayCancel = $("btnPayCancel");
+
 const btnExportJson = $("btnExportJson");
 const btnExportGpx = $("btnExportGpx");
 
@@ -49,6 +55,7 @@ let jwt = null;
 let deviceKeyPair = null;
 
 let lastSendAt = 0;
+let pendingStart = false;
 
 function setStatus(msg){ statusEl.textContent = msg; }
 function nowMs(){ return Date.now(); }
@@ -153,6 +160,61 @@ if (geoSupported()) {
   setStatus("Geolocation not supported.");
 }
 
+function isPaidForJourney(){
+  return localStorage.getItem("paidForCurrentJourney") === "1";
+}
+
+function markPaidForJourney(){
+  localStorage.setItem("paidForCurrentJourney", "1");
+  updatePayUI();
+}
+
+function clearPaidForJourney(){
+  localStorage.removeItem("paidForCurrentJourney");
+  updatePayUI();
+}
+
+function updatePayUI(){
+  if (isPaidForJourney()) {
+    btnPay.disabled = true;
+  } else {
+    btnPay.disabled = false;
+  }
+}
+
+function showPayModal(){
+  payModal.setAttribute("aria-hidden", "false");
+  payModal.style.display = "block";
+}
+
+function hidePayModal(){
+  payModal.setAttribute("aria-hidden", "true");
+  payModal.style.display = "none";
+}
+
+async function simulatePayment(){
+  setStatus("Processing payment…");
+  btnPayNow.disabled = true;
+  await new Promise((r) => setTimeout(r, 1400));
+  markPaidForJourney();
+  setStatus("Payment received — starting journey.");
+  hidePayModal();
+  btnPayNow.disabled = false;
+  if (pendingStart) {
+    pendingStart = false;
+    startSession();
+  }
+}
+
+btnPay?.addEventListener("click", () => {
+  showPayModal();
+});
+
+btnPayNow?.addEventListener("click", () => simulatePayment());
+btnPayCancel?.addEventListener("click", () => { hidePayModal(); pendingStart = false; });
+
+updatePayUI();
+
 function haversineMeters(a, b){
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -165,6 +227,14 @@ function haversineMeters(a, b){
 
 async function startSession(){
   if (!geoSupported()) { alert("Geolocation not supported."); return; }
+
+  // Require per-journey payment
+  if (!isPaidForJourney()) {
+    // prompt payment, then continue
+    pendingStart = true;
+    showPayModal();
+    return;
+  }
 
   points = [];
   stops = [];

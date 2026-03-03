@@ -91,6 +91,8 @@ margin-top:4px;
 <button id="btnStopHere" disabled>Add Stop</button>
 <button id="btnCenter">Center Map</button>
 
+<button id="btnPay">Pay £5 for Journey</button>
+
 <label>
 <input type="checkbox" id="hiAcc">
 High Accuracy
@@ -117,6 +119,19 @@ Send Interval
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="./app.js"></script>
+
+<!-- Paywall modal -->
+<div id="payModal" class="modal" aria-hidden="true">
+	<div class="modal-content">
+		<h3>Pay £5 to start this journey</h3>
+		<p>To start tracking this journey you must pay a one-off fee of £5.</p>
+		<div class="modal-actions">
+			<button id="btnPayNow">Pay £5</button>
+			<button id="btnPayCancel" class="secondary">Cancel</button>
+		</div>
+		<p class="small">This demo uses a mock payment flow. For production integrate a payment provider like Stripe Checkout.</p>
+	</div>
+</div>
 
 </body>
 </html>
