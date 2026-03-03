@@ -39,6 +39,9 @@ const btnExportGpx = $("btnExportGpx");
 const groupCodeEl = $("groupCode");
 const btnCreateGroup = $("btnCreateGroup");
 const btnJoinGroup = $("btnJoinGroup");
+const stopPostcodeEl = $("stopPostcode");
+const btnAddStop = $("btnAddStop");
+const stopsListEl = $("stopsList");
 
 let map;
 let watchId = null;
@@ -51,6 +54,7 @@ let groupId = null;
 let latestPoint = null;
 let points = [];
 let stops = [];
+let stopMarkers = [];
 
 let userMarker = null;
 
@@ -240,6 +244,59 @@ btnPayCancel?.addEventListener("click", () => { hidePayModal(); pendingStart = f
 
 updatePayUI();
 
+// helper: render stops list in UI
+function renderStops(){
+  if (!stopsListEl) return;
+  if (!stops.length) { stopsListEl.textContent = 'No stops added.'; return; }
+  stopsListEl.innerHTML = stops.map((s,i) => `${i+1}. ${s.name || s.postcode || (s.lat+','+s.lng)}`).join('<br>');
+}
+
+// add a stop marker on the map and store it
+function addStopMarker(stop){
+  if (!map) {
+    stops.push(stop);
+    renderStops();
+    return;
+  }
+  const m = new maplibregl.Marker({ color: '#4ade80' })
+    .setLngLat([stop.lng, stop.lat])
+    .addTo(map);
+  stopMarkers.push(m);
+  stops.push(stop);
+  renderStops();
+}
+
+// geocode a UK postcode using Nominatim
+async function geocodePostcode(pc){
+  const q = encodeURIComponent(pc.trim());
+  const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=gb&limit=1&q=${q}`;
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error('Geocode failed');
+  const arr = await res.json();
+  if (!arr || !arr.length) throw new Error('No results');
+  const r = arr[0];
+  return { lat: parseFloat(r.lat), lng: parseFloat(r.lon), name: r.display_name, postcode: pc };
+}
+
+btnAddStop?.addEventListener('click', async () => {
+  const pc = stopPostcodeEl?.value || '';
+  if (!pc.trim()) { alert('Enter a postcode'); return; }
+  try {
+    setStatus('Geocoding…');
+    const s = await geocodePostcode(pc);
+    addStopMarker(s);
+    setStatus('Stop added');
+    // center map to stop briefly
+    if (map) map.flyTo({ center: [s.lng, s.lat], zoom: 14 });
+    stopPostcodeEl.value = '';
+  } catch (e) {
+    setStatus('Geocode failed');
+    alert('Could not find that postcode');
+  }
+});
+
+renderStops();
+
 function haversineMeters(a, b){
   const R = 6371000;
   const toRad = (d) => (d * Math.PI) / 180;
@@ -262,7 +319,7 @@ async function startSession(){
   }
 
   points = [];
-  stops = [];
+    // do NOT clear `stops` here so pre-added stops persist when starting
   latestPoint = null;
   updateRouteOnMap();
 
