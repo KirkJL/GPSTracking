@@ -304,10 +304,23 @@ function boxShadow(el,val){try{el.style.boxShadow=val;}catch(e){}
 async function geocodePostcode(pc){
   const q = encodeURIComponent(pc.trim());
   const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=gb&limit=1&q=${q}`;
-  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!res.ok) throw new Error('Geocode failed');
+  console.debug('geocode request', url);
+  const res = await fetch(url, {
+    headers: {
+      'Accept': 'application/json',
+      // Nominatim often requires a descriptive User-Agent
+      'User-Agent': 'WayTraceGPS/1.0 (example@domain.com)'
+    }
+  });
+  if (!res.ok) {
+    console.error('geocode response status', res.status, res.statusText);
+    throw new Error(`Geocode failed HTTP ${res.status}`);
+  }
   const arr = await res.json();
-  if (!arr || !arr.length) throw new Error('No results');
+  if (!arr || !arr.length) {
+    console.warn('geocode returned no results for', pc, arr);
+    throw new Error('No results');
+  }
   const r = arr[0];
   return { lat: parseFloat(r.lat), lng: parseFloat(r.lon), name: r.display_name, postcode: pc };
 }
