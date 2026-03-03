@@ -11,16 +11,19 @@
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 
   <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' https://unpkg.com;
-    style-src 'self' 'unsafe-inline' https://unpkg.com;
-    img-src 'self' data: blob: https://*.tile.openstreetmap.org;
-    connect-src 'self' gpstracking.kirkjlemon.workers.dev;
-    worker-src 'self';
-    object-src 'none';
-    base-uri 'none';
-    frame-ancestors 'none';
-  " />
+default-src 'self';
+script-src 'self' https://unpkg.com;
+style-src 'self' https://unpkg.com 'unsafe-inline';
+img-src 'self' data: https://*.tile.openstreetmap.org;
+connect-src 'self' https://gpstracking.kirkjlemon.workers.dev https://*.tile.openstreetmap.org https://unpkg.com;
+worker-src 'self' blob:;
+font-src 'self' https://unpkg.com;
+manifest-src 'self';
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+frame-ancestors 'none';
+">
 </head>
 
 <body>
